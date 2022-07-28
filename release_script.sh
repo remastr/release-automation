@@ -33,6 +33,23 @@ RE="([0-9]+\.[0-9]+)"
 git config --global user.email "$GIT_EMAIL"
 git config --global user.name "$GIT_USERNAME"
 
+
+### TAG CREATION
+
+# Tag needs to be created before the git setup to have the tag on HEAD where the pipeline is executed, not on HEAD of main branch
+# Also the script will fail before anything else happens if this version was already published
+
+# Create tag for version and push it to remote
+echo "Going to tag the git with version v$VERSION"
+git tag "v$VERSION"
+if ! git push origin "v$VERSION";
+then
+  echo "Version $VERSION already exists as git tag"
+  exit 1
+fi
+
+### FLOW
+
 # Fetch is needed because CI is performing only shallow pull
 git fetch
 
@@ -49,28 +66,6 @@ then
   exit 1
 fi
 
-### FLOW
-
-# note: Not needed, version is passed as argument to script
-# Extract version from the commit message
-#if [[ $MERGE_COMMIT_MESSAGE =~ $RE ]]
-#then
-#  VERSION=${BASH_REMATCH[1]}
-#  echo "Found version v$VERSION"
-#else
-#  # Version of the software cannot be determined, therefore we exit
-#  echo "No valid version was found in merge commit message"
-#  exit 1
-#fi
-
-# Create tag for version and push it to remote
-echo "Going to tag the git with version v$VERSION"
-git tag "v$VERSION"
-if ! git push origin "v$VERSION";
-then
-  echo "Version $VERSION already exists as git tag"
-  exit 1
-fi
 
 # Create changelog and write it to file
 echo "Creating changelog directory"
