@@ -32,9 +32,20 @@ RE="([0-9]+\.[0-9]+)"
 # Git variables setup
 git config --global user.email "$GIT_EMAIL"
 git config --global user.name "$GIT_USERNAME"
+
+# Fetch is needed because CI is performing only shallow pull
+git fetch
+
+# Checking out prod branch
 if ! git checkout "$GIT_BRANCH";
 then
   echo "Could not checkout the branch $GIT_BRANCH provided in GIT_BRANCH env variable"
+  exit 1
+fi
+
+if ! git pull;
+then
+  echo "Could not pull $GIT_BRANCH branch"
   exit 1
 fi
 
@@ -85,11 +96,15 @@ fi
 # Merge the changes of changelog to develop
 echo "Merging $GIT_BRANCH to $GIT_DEV_BRANCH"
 
-# Fetch is needed because CI is performing only shallow pull
-git fetch
 if ! git checkout "$GIT_DEV_BRANCH";
 then
   echo "Could not checkout the branch provided in GIT_BRANCH env variable"
+  exit 1
+fi
+
+if ! git pull;
+then
+  echo "Could not pull $GIT_DEV_BRANCH branch"
   exit 1
 fi
 
