@@ -43,9 +43,9 @@ then
   exit 1
 fi
 
-if ! git pull;
+if ! git reset --hard "origin/$GIT_BRANCH";
 then
-  echo "Could not pull $GIT_BRANCH branch"
+  echo "Could not reset $GIT_BRANCH branch to the origins state"
   exit 1
 fi
 
@@ -94,7 +94,7 @@ then
 fi
 
 # Merge the changes of changelog to develop
-echo "Merging $GIT_BRANCH to $GIT_DEV_BRANCH"
+echo "Merging $GIT_BRANCH to $GIT_DEV_BRANCH and pushing it"
 
 if ! git checkout "$GIT_DEV_BRANCH";
 then
@@ -102,9 +102,9 @@ then
   exit 1
 fi
 
-if ! git pull;
+if ! git reset --hard "origin/$GIT_DEV_BRANCH";
 then
-  echo "Could not pull $GIT_DEV_BRANCH branch"
+  echo "Could not reset $GIT_DEV_BRANCH branch to the origins state"
   exit 1
 fi
 
