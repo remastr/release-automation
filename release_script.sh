@@ -29,6 +29,10 @@ RE="([0-9]+\.[0-9]+)"
 
 ### GIT SETUP
 
+# This is set to not open any editor app while merging the branches, otherwise it would fail
+# error: Terminal is dumb, but EDITOR unset
+GIT_MERGE_AUTOEDIT=no
+
 # Git variables setup
 git config --global user.email "$GIT_EMAIL"
 git config --global user.name "$GIT_USERNAME"
@@ -50,7 +54,9 @@ fi
 
 ### FLOW
 
-# Fetch is needed because CI is performing only shallow pull
+# Fetch is needed because most CIs are performing only shallow pull
+# This ensures the script will run correctly under any circumstances
+
 git fetch
 
 # Checking out prod branch
@@ -60,6 +66,9 @@ then
   exit 1
 fi
 
+# This ensures the local prod branch is up to date with the remote one
+# Sometimes it happens that local branch is somehow behind some commits and then merging fails
+# Also pulling didn't help here on GitLab CI
 if ! git reset --hard "origin/$GIT_BRANCH";
 then
   echo "Could not reset $GIT_BRANCH branch to the origins state"
