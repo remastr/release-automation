@@ -89,6 +89,7 @@ echo "$CHANGELOG" >> "$CHANGELOG_FILE"
 echo "Committing changelog file to branch $GIT_BRANCH"
 git add .
 git commit -m "Changelog for version $VERSION
+
 [ci skip]"
 
 echo "Pushing the changes on branch $GIT_BRANCH"
@@ -114,6 +115,7 @@ then
 fi
 
 if ! git merge "$GIT_BRANCH" -m "Merge branch '$GIT_BRANCH' into $GIT_DEV_BRANCH
+
 [ci skip]";
 then
   echo "Failed to merge branch $GIT_BRANCH to $GIT_DEV_BRANCH"
