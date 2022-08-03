@@ -114,7 +114,7 @@ then
   exit 1
 fi
 
-if ! git merge "$GIT_BRANCH" -m "Merge branch '$GIT_BRANCH' into $GIT_DEV_BRANCH
+if ! git merge "$GIT_BRANCH" -m "Merge branch '$GIT_BRANCH' into '$GIT_DEV_BRANCH'
 
 [ci skip]";
 then
@@ -123,7 +123,7 @@ then
 fi
 
 
-if ! git push --all origin -o ci.skip;
+if ! git push -o ci.skip;
 then
   echo "Failed to push GIT_DEV_BRANCH to origin"
   exit 1
