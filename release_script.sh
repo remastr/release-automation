@@ -33,6 +33,10 @@ RE="([0-9]+\.[0-9]+)"
 # error: Terminal is dumb, but EDITOR unset
 GIT_MERGE_AUTOEDIT=no
 
+# This fixes the problem with `-o ci.skip` which is required on GitLab
+# But prohibited on BitBucket with error: fatal: the receiving end does not support push options
+git config receive.advertisePushOptions true
+
 # Git variables setup
 git config --global user.email "$GIT_EMAIL"
 git config --global user.name "$GIT_USERNAME"
