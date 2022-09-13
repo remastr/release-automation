@@ -114,7 +114,7 @@ then
   exit 1
 fi
 
-if ! git merge "$GIT_BRANCH" -m "Merge branch '$GIT_BRANCH' into '$GIT_DEV_BRANCH'";
+if ! git merge "$GIT_BRANCH" --no-ff -m "Merge branch '$GIT_BRANCH' into '$GIT_DEV_BRANCH'";
 then
   echo "Failed to merge branch $GIT_BRANCH to $GIT_DEV_BRANCH"
   exit 1
