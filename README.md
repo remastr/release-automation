@@ -60,7 +60,12 @@ GIT_BRANCH=main-branch-of-project
 By default, if you set up any VCS project inside any CI/CD tool, most of them use read-only access key to check out the code. Therefore push is prohibited and that's something needed to be allowed before running the script. In following subsections are instructions how to generate a key with deploy rights, you will use that key later.
 
 
-### GitLab + Circle CI/GitLab CI
+### GitLab + GitLab CI
+
+In GitLab project to `Settings` -> `Access Tokens` and create new access token with `read_repository` and `write_repository` permissions and assign it role `Maintainer`. Copy the key ID, you will use it later.
+
+
+### GitLab + Circle CI
 
 
 Generate new SSH key using guide in Help section. Open the project on GitLab and copy the content of `id_rsa.pub` into `Settings` -> `Repository` -> `Deploy Keys`. Make sure the option `Grant write permissions to this key` is checked and save the key
@@ -80,7 +85,7 @@ Open Circle CI project, go to `Project settings` -> `SSH Keys` -> `Additional SS
 
 ### GitLab + GitLab CI
 
-Add environment variable `GIT_PUSH_KEY` inside your CI/CD project settings, where you will pass private key created in previous step.
+Add environment variable `GIT_TOKEN` inside your CI/CD project settings, where you will pass the copied Key ID from previous step.
 
 
 ### BitBucket + Circle CI
@@ -110,14 +115,8 @@ release:
   image: cimg/python:3.8-node
   rules:
     - if: '$CI_COMMIT_BRANCH == $GIT_BRANCH'
-  before_script:
-    - mkdir ~/.ssh/
-    - ssh-keyscan $CI_SERVER_HOST > ~/.ssh/known_hosts
-    - echo "${GIT_PUSH_KEY}" > ~/.ssh/id_rsa
-    - chmod 600 ~/.ssh/id_rsa
-    - git remote remove origin || true  # Local repo state may be cached
-    - git remote add origin "git@$CI_SERVER_HOST:$CI_PROJECT_PATH.git"
   script:
+    - git remote set-url origin https://${CI_REGISTRY_USER}:${GIT_TOKEN}@${CI_REPOSITORY_URL#*@}
     - VERSION=$(poetry version --short)
     - bash <(curl -s https://raw.githubusercontent.com/remastr/release-automation/main/release_script.sh) $VERSION
 ```
