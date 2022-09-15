@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from datetime import date
 from http.client import HTTPSConnection
 from base64 import b64encode
-from typing import Optional, Set, List
+from typing import Optional, Set, List, Tuple
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)
@@ -120,24 +120,24 @@ class JiraService:
 
         return JiraVersion(id=resp["id"], number=resp["name"])
 
-    def _send_get_request(self, url) -> tuple[int, dict]:
+    def _send_get_request(self, url) -> Tuple[int, dict]:
         logger.info(f"Going to send GET JIRA request to the url [{url}]")
         self.c.request("GET", url, headers=self.headers)
         return self._execute_request_and_return_dict()
 
-    def _send_put_request(self, url, body: dict) -> tuple[int, dict]:
+    def _send_put_request(self, url, body: dict) -> Tuple[int, dict]:
         str_body = json.dumps(body)
         logger.info(f"Going to send PUT JIRA request to the url [{url}] with body [{str_body}]")
         self.c.request("PUT", url, headers=self.headers, body=str_body)
         return self._execute_request_and_return_dict()
 
-    def _send_post_request(self, url, body: dict) -> tuple[int, dict]:
+    def _send_post_request(self, url, body: dict) -> Tuple[int, dict]:
         str_body = json.dumps(body)
         logger.info(f"Going to send POST JIRA request to the url [{url}] with body [{str_body}]")
         self.c.request("POST", url, headers=self.headers, body=str_body)
         return self._execute_request_and_return_dict()
 
-    def _execute_request_and_return_dict(self) -> tuple[int, dict]:
+    def _execute_request_and_return_dict(self) -> Tuple[int, dict]:
         response = self.c.getresponse()
         content = response.read()
 
