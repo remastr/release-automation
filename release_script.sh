@@ -130,7 +130,8 @@ fi
 
 if [ "$RA_JIRA_PLUGIN" == "1" ]; 
 then
-  python3 jira-plugin/jira_plugin.py "$VERSION" "$CHANGELOG"
+  wget https://raw.githubusercontent.com/remastr/release-automation/feature/jira-plugin/jira-plugin/jira_plugin.py
+  python3 jira_plugin.py "$VERSION" "$CHANGELOG"
 else 
   echo "Jira Plugin is not enabled, set RA_JIRA_PLUGIN env variable to '1' to enable it"; 
 fi
