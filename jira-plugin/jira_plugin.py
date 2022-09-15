@@ -7,8 +7,7 @@ from dataclasses import dataclass
 from datetime import date
 from http.client import HTTPSConnection
 from base64 import b64encode
-from typing import Optional
-
+from typing import Optional, Set, List
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)
@@ -51,7 +50,7 @@ class JiraService:
             "Content-type": "application/json"
         }
 
-    def execute(self, version: str, ticket_numbers: set(str)):
+    def execute(self, version: str, ticket_numbers: Set[str]):
         version = self.get_or_create_version(version)
         for ticket_number in ticket_numbers:
             jira_issue = self.get_jira_issue(ticket_number)
@@ -151,18 +150,18 @@ class JiraService:
         return response.getcode(), json.loads(content)
 
 
-def parse_changelog_into_ticket_numbers(changelog: str) -> set(str):
+def parse_changelog_into_ticket_numbers(changelog: str) -> Set[str]:
     lines = changelog.split("\n")
     tic_numbers = list(map(parse_changelog_line_to_ticket_number, lines))
     return flatten_list_of_lists(tic_numbers)
 
 
-def parse_changelog_line_to_ticket_number(changelog_line: str) -> list(str):
+def parse_changelog_line_to_ticket_number(changelog_line: str) -> List[str]:
     regex = re.compile(fr"{jira_project_key}-\d*")
     return regex.findall(changelog_line)
 
 
-def flatten_list_of_lists(l: list(list(str))) -> set(str):
+def flatten_list_of_lists(l: List[List[str]]) -> Set[str]:
     return {item for sublist in l for item in sublist}
 
 
