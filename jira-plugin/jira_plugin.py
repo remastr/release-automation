@@ -151,18 +151,18 @@ class JiraService:
         return response.getcode(), json.loads(content)
 
 
-def parse_changelog_into_ticket_numbers(changelog: str) -> set[str]:
+def parse_changelog_into_ticket_numbers(changelog: str) -> set(str):
     lines = changelog.split("\n")
     tic_numbers = list(map(parse_changelog_line_to_ticket_number, lines))
     return flatten_list_of_lists(tic_numbers)
 
 
-def parse_changelog_line_to_ticket_number(changelog_line: str) -> list[str]:
+def parse_changelog_line_to_ticket_number(changelog_line: str) -> list(str):
     regex = re.compile(fr"{jira_project_key}-\d*")
     return regex.findall(changelog_line)
 
 
-def flatten_list_of_lists(l: list[list[str]]) -> set[str]:
+def flatten_list_of_lists(l: list(list(str))) -> set(str):
     return {item for sublist in l for item in sublist}
 
 
