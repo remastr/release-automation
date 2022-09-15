@@ -51,7 +51,7 @@ class JiraService:
             "Content-type": "application/json"
         }
 
-    def execute(self, version: str, ticket_numbers: set[str]):
+    def execute(self, version: str, ticket_numbers: set(str)):
         version = self.get_or_create_version(version)
         for ticket_number in ticket_numbers:
             jira_issue = self.get_jira_issue(ticket_number)
