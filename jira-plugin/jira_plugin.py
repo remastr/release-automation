@@ -30,6 +30,7 @@ class JiraIssue:
 class JiraConfig:
     url: str
     project_id: str
+    project_key: str
     user_email: str
     user_token: str
     rfr_status_name: str
@@ -99,7 +100,7 @@ class JiraService:
         self._send_post_request(transition_issue_url, transition_issue_body)
 
     def get_or_create_version(self, version_number: str) -> JiraVersion:
-        get_version_url = f"/rest/api/3/project/TES/version?query={version_number}"
+        get_version_url = f"/rest/api/3/project/{self.jira_config.project_key}/version?query={version_number}"
 
         resp = self._send_get_request(get_version_url)
         for version in resp[1]["values"]:
@@ -200,7 +201,7 @@ if __name__ == '__main__':
     # Look for the transition with correct name and pass the ID in this variable
     jira_done_transition_id = get_env_variable_or_raise("JIRA_DONE_TRANSITION_ID")
 
-    jira_config = JiraConfig(jira_url, jira_project_id, jira_user_email, jira_user_token, jira_ready_for_release_status_name, jira_done_transition_id)
+    jira_config = JiraConfig(jira_url, jira_project_id, jira_project_key, jira_user_email, jira_user_token, jira_ready_for_release_status_name, jira_done_transition_id)
 
     logger.info("Extraction of environment variables finished successfully")
     logger.info("#################################################\n\n")
