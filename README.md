@@ -17,11 +17,17 @@ release_script.sh is script used to perform following tasks automatically after 
 
 ## Overview of setting up the release-automation script
 
-1. specify git username and email for commits from CI
-2. specify names of development and main git branches
-3. generate the SSH key to push to repository from CI
-4. add SSH key into CI/CD tool projects settings
-5. include script execution in your CI/CD tool pipeline
+1. specify version of release-automation you will use
+2. specify git username and email for commits from CI
+3. specify names of development and main git branches
+4. generate the SSH key to push to repository from CI
+5. add SSH key into CI/CD tool projects settings
+6. include script execution in your CI/CD tool pipeline
+
+
+## Specifying version of release-automation
+
+To specify version of release-automation you will use, just add env variable `RA_VERSION` with valid git reference, like branch name, tag name, revision number etc.
 
 
 ## Specifying git username and email
