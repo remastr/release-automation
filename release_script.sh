@@ -21,7 +21,7 @@ MERGE_COMMIT_MESSAGE=$(git log -1 --format="%s")
 MERGE_COMMIT_AUTHOR=$(git log -1 --format="%an")
 
 # Changelog for all commits merged to this branch since last commit on this branch
-CHANGELOG=$(git log --format="%h  %s (%an)" --no-merges HEAD~1..HEAD)
+CHANGELOG=$(git --no-pager log --format="%h  %s (%an)" --no-merges HEAD~1..HEAD)
 
 # Regex for searching the release version in commit message
 RE="([0-9]+\.[0-9]+)"
