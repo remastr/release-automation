@@ -130,7 +130,7 @@ After adding this key, you need to delete `Deploy Key` that was previously added
 
 ### GitLab + GitLab CI
 
-Add another `stage` called `post-release` into your config:
+Add another `stage` called `post-deploy` into your config:
 
 ```
 stages:

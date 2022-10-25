@@ -36,7 +36,7 @@ In this section, you will learn how to get required variables from API.
 In commands, you will need a few variables:
 
 - `<your_jira_url>` - something like `remaster.atlassian.net`
-- `<your_jira_project_key>` - string ontained in ticket numbers, like `TES-111` (in this case the project key is `TES`)
+- `<your_jira_project_key>` - string contained in ticket numbers, like `TES-111` (in this case the project key is `TES`)
 - `<your_jira_ticket>` - any of the currently existing Jira tickets in your project, in format `TES-111`
 - `<authorization>` - base64 encode of following string `<your_jira_user_email>:<your_jira_user_token>`
 
@@ -66,8 +66,8 @@ Following variables are required for Jira plugin to run successfully and need to
 
 - `JIRA_URL` without the `https` or `www`, something like `remaster.atlassian.net`
 - `JIRA_USER_EMAIL` - email of user selected to perform operations
-- `JIRA_USER_TOKEN` - token of user selected to perform operations
-- `JIRA_PROJECT_KEY` - usually 3 chars string, contained in ticket numbers, like `TES-111` (in this case the project key is `TES`)
+- `JIRA_USER_TOKEN` - API token of user selected to perform operations
+- `JIRA_PROJECT_KEY` - string contained in ticket numbers, like `TES-111` (in this case the project key is `TES`)
 - `JIRA_PROJECT_ID` - ID of project aquired from API, see previous section
 - `JIRA_DONE_TRANSITION_ID` - ID of `Done` status transition aquired from API, see previous section
 - `JIRA_READY_FOR_RELEASE_STATUS_NAME` - name of status prior to `Done` status, like 'Ready for Relase', casing does not matter (only tickets in this status will be moved to `Done`, other will stay in their columns - to not move tickets e.g. from testing column to `Done` status accidentaly)
