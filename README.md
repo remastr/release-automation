@@ -27,7 +27,8 @@ release_script.sh is script used to perform following tasks automatically after 
 
 ## Specifying version of release-automation
 
-To specify version of release-automation you will use, just add env variable `RA_VERSION` with valid git reference, like branch name, tag name, revision number etc.
+To specify version of release-automation you will use, just add env variable `RA_VERSION` with valid git reference, like branch name, tag name, revision number etc. 
+Most of the time you want to use the latest stable version, find releases here: https://github.com/remastr/release-automation/releases
 
 
 ## Specifying git username and email
@@ -74,19 +75,20 @@ In GitLab project to `Settings` -> `Access Tokens` and create new access token w
 ### GitLab + Circle CI
 
 
-Generate new SSH key using guide in Help section. Open the project on GitLab and copy the content of `id_rsa.pub` into `Settings` -> `Repository` -> `Deploy Keys`. Make sure the option `Grant write permissions to this key` is checked and save the key
+Generate new SSH key using guide in Help section. Open the project on GitLab and copy the content of public key into `Settings` -> `Repository` -> `Deploy Keys`. Make sure the option `Grant write permissions to this key` is checked and save the key
 
 
+TODO probably delete - public key is published from from the next step
 ### BitBucket + CircleCI
 
-You will need to create BitBucket user specifically for this project. Then, generate new SSH key using guide in Help section. Go to the newly created user `Personal Settings` -> `SSH Keys` -> `Add key` and copy the content of `id_rsa.pub` there.
+You will need to create BitBucket user specifically for this project. Then, generate new SSH key using guide in Help section. Go to the newly created user `Personal Settings` -> `SSH Keys` -> `Add key` and copy the content of public key there.
 
 
 ## Adding SSH key into CI/CD tool projects settings
 
 ### GitLab + Circle CI
 
-Open Circle CI project, go to `Project settings` -> `SSH Keys` -> `Additional SSH Keys` and add previously created key there. Leave hostname empty.
+Open Circle CI project, go to `Project settings` -> `SSH Keys` -> `Additional SSH Keys` and add previously created private key there. Leave hostname empty.
 
 
 ### GitLab + GitLab CI

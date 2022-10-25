@@ -93,7 +93,7 @@ git commit -m "Changelog for version $VERSION
 [ci skip]"
 
 echo "Pushing the changes on branch $GIT_BRANCH"
-if ! git push;
+if ! git push --set-upstream origin "$GIT_BRANCH";
 then
   echo "Failed to push $GIT_BRANCH to origin"
   exit 1
@@ -121,7 +121,7 @@ then
 fi
 
 
-if ! git push;
+if ! git push --set-upstream origin "$GIT_DEV_BRANCH";
 then
   echo "Failed to push GIT_DEV_BRANCH to origin"
   exit 1
