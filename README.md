@@ -6,6 +6,12 @@ release_script.sh is script used to perform following tasks automatically after 
 - generate changelog based on commit messages since last commit and pushing it into main branch
 - merge main branch into develop branch after release
 
+It has also support for plugins, currently available plugins are:
+
+- JIRA plugin
+
+> NOTE: You can find each plugin in `plugins` directory and documentation to this plugin in `README.md` file inside each plugin
+
 
 ## Supported combinations of VCS and CI/CD tool
 
@@ -20,18 +26,19 @@ release_script.sh is script used to perform following tasks automatically after 
 1. specify version of release-automation you will use
 2. specify git username and email for commits from CI
 3. specify names of development and main git branches
-4. generate the SSH key to push to repository from CI
-5. add SSH key into CI/CD tool projects settings
-6. include script execution in your CI/CD tool pipeline
+4. choose the user which will be making changes in repository
+5. generate the SSH key to push to repository from CI
+6. add SSH key into CI/CD tool projects settings
+7. include script execution in your CI/CD tool pipeline
 
 
-## Specifying version of release-automation
+## 1. Specifying version of release-automation
 
 To specify version of release-automation you will use, just add env variable `RA_VERSION` with valid git reference, like branch name, tag name, revision number etc. 
 Most of the time you want to use the latest stable version, find releases here: https://github.com/remastr/release-automation/releases
 
 
-## Specifying git username and email
+## 2. Specifying git username and email
 
 Script is automatically creating some commits, such as changelog commit and merge of `main` branch to `development` branch. You need to set two environment variables inside your CI/CD project configuration to make commiting possible:
 
@@ -52,7 +59,7 @@ GIT_USERNAME=Google CI
 ```
 
 
-## Specifying names of development and main git branches
+## 3. Specifying names of development and main git branches
 
 Script needs to know which branches are main and develop, which you can specify by simply adding these two environment variables inside your CI/CD project configuration:
 
@@ -62,7 +69,23 @@ GIT_BRANCH=main-branch-of-project
 ```
 
 
-## Generating the SSH key to push to repository from CI
+## 4. Choosing the user/project for making changes in repository
+
+In following few sections, you will also work with your git system and you will need to setup the credentials (keys) for user/project. 
+These credentials will be used to push commits and tags.
+
+For the project, just choose the project for which you are implementing release-automation.
+For the user, there are two strategies here 
+
+- create new user specifically for this release-automation script and any other automated things in future (highly recommended)
+- use already existing user
+
+Whenever there will be git user/project addressed in the following sections, it means whichever user/project you have chosen in this step.
+
+> NOTE: you don't need to create user rightaway, it might be that your setup will not require user, just project. Whenever you will be asked to assign something to git user, then make a choice and create/reuse one.
+
+
+## 5. Generating the SSH key to push to repository from CI
 
 By default, if you set up any VCS project inside any CI/CD tool, most of them use read-only access key to check out the code. Therefore push is prohibited and that's something needed to be allowed before running the script. In following subsections are instructions how to generate a key with deploy rights, you will use that key later.
 
@@ -74,17 +97,16 @@ In GitLab project to `Settings` -> `Access Tokens` and create new access token w
 
 ### GitLab + Circle CI
 
-
 Generate new SSH key using guide in Help section. Open the project on GitLab and copy the content of public key into `Settings` -> `Repository` -> `Deploy Keys`. Make sure the option `Grant write permissions to this key` is checked and save the key
 
 
-TODO probably delete - public key is published from from the next step
 ### BitBucket + CircleCI
 
-You will need to create BitBucket user specifically for this project. Then, generate new SSH key using guide in Help section. Go to the newly created user `Personal Settings` -> `SSH Keys` -> `Add key` and copy the content of public key there.
+For this configuration, this step is unnecessary. The key will be generated for you in next step.
 
 
-## Adding SSH key into CI/CD tool projects settings
+## 6. Adding SSH key into CI/CD tool projects settings
+
 
 ### GitLab + Circle CI
 
@@ -100,9 +122,10 @@ Add environment variable `GIT_TOKEN` inside your CI/CD project settings, where y
 
 https://support.circleci.com/hc/en-us/articles/360003174053-How-Do-I-Add-a-Bitbucket-User-Key-
 
-After adding this key, you need to delete `Deploy Key` that was previously added there.
+After adding this key, you need to delete `Deploy Key` that was previously added automatically in Circle CI. Also do not forget to follow last step of the CircleCI guide provided above to put the key into the BitBucket.
 
-## Including script execution in CI/CD tool pipeline
+
+## 7. Including script execution in CI/CD tool pipeline
 
 
 ### GitLab + GitLab CI
@@ -130,7 +153,7 @@ release:
 ```
 
 
-## GitLab/BitBucket + Circle CI
+### GitLab/BitBucket + Circle CI
 
 Add new job into your pipeline, after the `deploy` job:
 
@@ -159,70 +182,6 @@ And then add it to your workflows section:
 ```
 
 > NOTE: putting $GIT_BRANCH instead of name of main branch does not work here
-
-
-## Jira Plugin
-
-Jira plugin is plugin of release-automation which allows you
-to automatically create Jira versions, assign released tickets to them and move them to `Done` status. 
-With Jira automation you can also post Slack messages with released changes to communication canals to directly
-notify stakeholders.
-
-
-### Enabling Jira plugin
-
-To enable Jira plugin, you need to set `RA_JIRA_PLUGIN` env variable to `1`.
-
-
-### Choosing user to use with Jira
-
-In order to manage data in Jira, you need to have Jira user.
-You can either use account of one of the people working on project.
-However, suggested way is to create a new user specifically for this automation script.
-After choosing user, you need to create a token for him on this page: 
-https://id.atlassian.com/manage-profile/security/api-tokens
-
-
-### Getting required variables for Jira plugin
-
-Some of the variables required for Jira plugin are easy to get.
-However, for some of them you need to use the API.
-In this section, you will learn how to get required variables from API.
-
-In commands, you will need a few variables:
-
-- `<your_jira_url>` - something like `henrich-hanusovsky.atlassian.net`
-- `<your_jira_project_key>` - usually 3 chars string, contained in ticket numbers, like `TES-111` (in this case the project key is `TES`)
-- `<your_jira_ticket>` - any of the currently existing Jira tickets in your project, in format `TES-111`
-- `<authorization>` - base64 encode of following string `<your_jira_user_email>:<your_jira_user_token>`
-
-
-Project ID. In response, find `id`.:
-
-```
-curl --location --request GET 'https://<your_jira_url>/rest/api/3/project/<your_jira_project_key>' \
---header 'Authorization: Basic <authorization>' \
-```
-
-`Done` transition ID. In response, go to `transitions` and find the one with `name` attribute corresponding to your `Done` Jira status. From there, copy the `id`.
-
-```
-curl --location --request GET 'https://<your_jira_url>/rest/api/3/issue/<your_jira_ticket>/transitions' \
---header 'Authorization: Basic <authorization>' \
-```
-
-
-### Configuring Jira plugin
-
-The list of required env variables for Jira plugin to run successfully:
-
-- `JIRA_URL` without the `https` or `www`, something like `henrich-hanusovsky.atlassian.net`
-- `JIRA_USER_EMAIL` - email of user selected to perform operations
-- `JIRA_USER_TOKEN` - token of user selected to perform operations
-- `JIRA_PROJECT_KEY` - usually 3 chars string, contained in ticket numbers, like `TES-111` (in this case the project key is `TES`)
-- `JIRA_PROJECT_ID` - ID of project aquired from API, see previous section
-- `JIRA_DONE_TRANSITION_ID` - ID of `Done` status transition aquired from API, see previous section
-- `JIRA_READY_FOR_RELEASE_STATUS_NAME` - name of status prior to `Done` status, like 'Ready for Relase', case does not matter (only tickets in this status will be moved to done, other will stay in their columns, like 'Progress' or 'Ready for QA')
 
 
 ## Help

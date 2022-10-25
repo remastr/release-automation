@@ -24,6 +24,7 @@ MERGE_COMMIT_AUTHOR=$(git log -1 --format="%an")
 CHANGELOG=$(git --no-pager log --format="%h  %s (%an)" --no-merges HEAD~1..HEAD)
 
 # Regex for searching the release version in commit message
+# Not Used currently
 RE="([0-9]+\.[0-9]+)"
 
 
@@ -40,7 +41,7 @@ git config --global user.name "$GIT_USERNAME"
 
 ### TAG CREATION
 
-# Tag needs to be created before the git setup to have the tag on HEAD where the pipeline is executed, not on HEAD of main branch
+# Tag needs to be created before the git fetch to have the tag on HEAD where the pipeline is executed, not on HEAD of main branch
 # Also the script will fail before anything else happens if this version was already published
 
 # Create tag for version and push it to remote
@@ -85,7 +86,7 @@ echo "Release $VERSION merged to production on $(date) by $MERGE_COMMIT_AUTHOR" 
 printf "\nReleased changes:\n" >> "$CHANGELOG_FILE"
 echo "$CHANGELOG" >> "$CHANGELOG_FILE"
 
-# Commit the changelog changes
+# Commit and push the changelog changes
 echo "Committing changelog file to branch $GIT_BRANCH"
 git add .
 git commit -m "Changelog for version $VERSION
@@ -117,6 +118,8 @@ fi
 if ! git merge "$GIT_BRANCH" --no-ff -m "Merge branch '$GIT_BRANCH' into '$GIT_DEV_BRANCH'";
 then
   echo "Failed to merge branch $GIT_BRANCH to $GIT_DEV_BRANCH"
+  echo "SUGGESTION: Merge the $GIT_BRANCH to $GIT_BRANCH_DEV locally and push the changes"
+  echo "SUGGESTION: Once you merge these two branches, you can consider release as finished, no rerun is needed"
   exit 1
 fi
 
