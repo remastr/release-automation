@@ -124,7 +124,7 @@ release:
   script:
     - git remote set-url origin https://${CI_REGISTRY_USER}:${GIT_TOKEN}@${CI_REPOSITORY_URL#*@}
     - VERSION=$(poetry version --short)
-    - bash <(curl -s https://raw.githubusercontent.com/remastr/release-automation/main/release_script.sh) $VERSION
+    - bash <(curl -s https://raw.githubusercontent.com/remastr/release-automation/$RA_VERSION/release_script.sh) $VERSION
 ```
 
 
@@ -143,7 +143,7 @@ release:
           name: release
           command: |
             VERSION=$(poetry version --short)
-            bash <(curl -s https://raw.githubusercontent.com/remastr/release-automation/main/release_script.sh) $VERSION
+            bash <(curl -s https://raw.githubusercontent.com/remastr/release-automation/$RA_VERSION/release_script.sh) $VERSION
 ```
 
 And then add it to your workflows section:
