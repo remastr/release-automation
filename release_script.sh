@@ -49,7 +49,7 @@ echo "Going to tag the git with version v$VERSION"
 git tag "v$VERSION"
 if ! git push origin "v$VERSION";
 then
-  echo "Version $VERSION already exists as git tag"
+  echo "Could not create git tag $VERSION"
   exit 1
 fi
 
