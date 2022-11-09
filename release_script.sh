@@ -17,6 +17,10 @@ done
 
 echo "Running 'git fetch' command"
 git fetch
+git status
+
+git show HEAD
+git show HEAD~1
 
 
 ### VARIABLES SETUP
@@ -27,6 +31,12 @@ echo "Setting up variables"
 MERGE_COMMIT_MESSAGE=$(git log -1 --format="%s")
 MERGE_COMMIT_AUTHOR=$(git log -1 --format="%an")
 
+# Changelog for all commits merged to this branch since last commit on this branch
+echo "Creating changelog content"
+CHANGELOG=$(git --no-pager log --format="%h  %s (%an)" --no-merges HEAD~1..HEAD)
+echo $CHANGELOG
+
+exit 1
 
 # Regex for searching the release version in commit message
 # Not Used currently
@@ -61,12 +71,6 @@ then
   echo "Could not checkout the branch $GIT_BRANCH provided in GIT_BRANCH env variable"
   exit 1
 fi
-
-# Changelog for all commits merged to this branch since last commit on this branch
-echo "Creating changelog content"
-CHANGELOG=$(git --no-pager log --format="%h  %s (%an)" --no-merges HEAD~1..HEAD)
-echo $CHANGELOG
-exit 1
 
 # This ensures the local prod branch is up to date with the remote one
 # Sometimes it happens that local branch is somehow behind some commits and then merging fails
