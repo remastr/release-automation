@@ -21,7 +21,9 @@ MERGE_COMMIT_MESSAGE=$(git log -1 --format="%s")
 MERGE_COMMIT_AUTHOR=$(git log -1 --format="%an")
 
 # Changelog for all commits merged to this branch since last commit on this branch
+echo "Creating changelog content"
 CHANGELOG=$(git --no-pager log --format="%h  %s (%an)" --no-merges HEAD~1..HEAD)
+echo $CHANGELOG
 
 # Regex for searching the release version in commit message
 # Not Used currently
@@ -81,7 +83,7 @@ fi
 echo "Creating changelog directory"
 mkdir changelog
 CHANGELOG_FILE="changelog/$VERSION"
-echo "Creating changelog content and writing into the file"
+echo "Writing changelog content into the file"
 echo "Release $VERSION merged to production on $(date) by $MERGE_COMMIT_AUTHOR" > "$CHANGELOG_FILE"
 printf "\nReleased changes:\n" >> "$CHANGELOG_FILE"
 echo "$CHANGELOG" >> "$CHANGELOG_FILE"
