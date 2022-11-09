@@ -11,6 +11,12 @@ for val in "${REQUIRED_VARIABLES[@]}"; do
   if [ -z ${!val+x} ]; then echo "Required variable '$val' is not set"; exit 1; fi
 done
 
+### FETCHING WHOLE REPOSITORY
+# Fetch is needed because most CIs are performing only shallow pull
+# This ensures the script will run correctly under any circumstances
+
+git fetch
+
 
 ### VARIABLES SETUP
 
@@ -24,6 +30,8 @@ MERGE_COMMIT_AUTHOR=$(git log -1 --format="%an")
 echo "Creating changelog content"
 CHANGELOG=$(git --no-pager log --format="%h  %s (%an)" --no-merges HEAD~1..HEAD)
 echo $CHANGELOG
+
+exit 1
 
 # Regex for searching the release version in commit message
 # Not Used currently
@@ -44,23 +52,13 @@ git config --global user.name "$GIT_USERNAME"
 ### TAG CREATION
 
 # Tag needs to be created before the git fetch to have the tag on HEAD where the pipeline is executed, not on HEAD of main branch
-# Also the script will fail before anything else happens if this version was already published
-
 # Create tag for version and push it to remote
 echo "Going to tag the git with version v$VERSION"
 git tag "v$VERSION"
-if ! git push origin "v$VERSION";
-then
-  echo "Could not create git tag $VERSION"
-  exit 1
-fi
+git push origin "v$VERSION";
+
 
 ### FLOW
-
-# Fetch is needed because most CIs are performing only shallow pull
-# This ensures the script will run correctly under any circumstances
-
-git fetch
 
 # Checking out prod branch
 if ! git checkout "$GIT_BRANCH";
