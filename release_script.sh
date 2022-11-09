@@ -50,7 +50,11 @@ git config --global user.name "$GIT_USERNAME"
 # Create tag for version and push it to remote
 echo "Going to tag the git with version v$VERSION"
 git tag "v$VERSION"
-git push origin "v$VERSION";
+if ! git push origin "v$VERSION";
+then
+  echo "Could not create git tag $VERSION"
+  exit 1
+fi
 
 
 ### FLOW
