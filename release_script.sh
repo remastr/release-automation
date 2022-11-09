@@ -15,7 +15,9 @@ done
 # Fetch is needed because most CIs are performing only shallow pull
 # This ensures the script will run correctly under any circumstances
 
+echo "Running 'git fetch' command"
 git fetch
+git status
 
 
 ### VARIABLES SETUP
