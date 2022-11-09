@@ -25,6 +25,9 @@ echo "Creating changelog content"
 CHANGELOG=$(git --no-pager log --format="%h  %s (%an)" --no-merges HEAD~1..HEAD)
 echo $CHANGELOG
 
+# The commit on which current pipeline is running
+PIPELINE_COMMIT=$(git log --pretty=format:'%h' -n 1)
+
 # Regex for searching the release version in commit message
 # Not Used currently
 RE="([0-9]+\.[0-9]+)"
@@ -44,8 +47,6 @@ git config --global user.name "$GIT_USERNAME"
 ### TAG CREATION
 
 # Tag needs to be created before the git fetch to have the tag on HEAD where the pipeline is executed, not on HEAD of main branch
-# Also the script will fail before anything else happens if this version was already published
-
 # Create tag for version and push it to remote
 echo "Going to tag the git with version v$VERSION"
 git tag "v$VERSION"
@@ -54,6 +55,7 @@ then
   echo "Could not create git tag $VERSION"
   exit 1
 fi
+
 
 ### FLOW
 
@@ -78,57 +80,63 @@ then
   exit 1
 fi
 
-
-# Create changelog and write it to file
-echo "Creating changelog directory"
-mkdir changelog
-CHANGELOG_FILE="changelog/$VERSION"
-echo "Writing changelog content into the file"
-echo "Release $VERSION merged to production on $(date) by $MERGE_COMMIT_AUTHOR" > "$CHANGELOG_FILE"
-printf "\nReleased changes:\n" >> "$CHANGELOG_FILE"
-echo "$CHANGELOG" >> "$CHANGELOG_FILE"
-
-# Commit and push the changelog changes
-echo "Committing changelog file to branch $GIT_BRANCH"
-git add .
-git commit -m "Changelog for version $VERSION
-
-[ci skip]"
-
-echo "Pushing the changes on branch $GIT_BRANCH"
-if ! git push --set-upstream origin "$GIT_BRANCH";
+# Only commit changelog changes when it is running on most recent commit in production branch
+if [ $(git log --pretty=format:'%h' -n 1) == "$PIPELINE_COMMIT" ];
 then
-  echo "Failed to push $GIT_BRANCH to origin"
-  exit 1
-fi
+  # Create changelog and write it to file
+  echo "Creating changelog directory"
+  mkdir changelog
+  CHANGELOG_FILE="changelog/$VERSION"
+  echo "Writing changelog content into the file"
+  echo "Release $VERSION merged to production on $(date) by $MERGE_COMMIT_AUTHOR" > "$CHANGELOG_FILE"
+  printf "\nReleased changes:\n" >> "$CHANGELOG_FILE"
+  echo "$CHANGELOG" >> "$CHANGELOG_FILE"
 
-# Merge the changes of changelog to develop
-echo "Merging $GIT_BRANCH to $GIT_DEV_BRANCH and pushing it"
+  # Commit and push the changelog changes
+  echo "Committing changelog file to branch $GIT_BRANCH"
+  git add .
+  git commit -m "Changelog for version $VERSION
 
-if ! git checkout "$GIT_DEV_BRANCH";
-then
-  echo "Could not checkout the branch provided in GIT_BRANCH env variable"
-  exit 1
-fi
+  [ci skip]"
 
-if ! git reset --hard "origin/$GIT_DEV_BRANCH";
-then
-  echo "Could not reset $GIT_DEV_BRANCH branch to the origins state"
-  exit 1
-fi
+  echo "Pushing the changes on branch $GIT_BRANCH"
+  if ! git push --set-upstream origin "$GIT_BRANCH";
+  then
+    echo "Failed to push $GIT_BRANCH to origin"
+    exit 1
+  fi
 
-if ! git merge "$GIT_BRANCH" --no-ff -m "Merge branch '$GIT_BRANCH' into '$GIT_DEV_BRANCH'";
-then
-  echo "Failed to merge branch $GIT_BRANCH to $GIT_DEV_BRANCH"
-  echo "SUGGESTION: Merge the $GIT_BRANCH to $GIT_BRANCH_DEV locally and push the changes"
-  exit 1
-fi
+  # Merge the changes of changelog to develop
+  echo "Merging $GIT_BRANCH to $GIT_DEV_BRANCH and pushing it"
+
+  if ! git checkout "$GIT_DEV_BRANCH";
+  then
+    echo "Could not checkout the branch provided in GIT_BRANCH env variable"
+    exit 1
+  fi
+
+  if ! git reset --hard "origin/$GIT_DEV_BRANCH";
+  then
+    echo "Could not reset $GIT_DEV_BRANCH branch to the origins state"
+    exit 1
+  fi
+
+  if ! git merge "$GIT_BRANCH" --no-ff -m "Merge branch '$GIT_BRANCH' into '$GIT_DEV_BRANCH'";
+  then
+    echo "Failed to merge branch $GIT_BRANCH to $GIT_DEV_BRANCH"
+    echo "SUGGESTION: Merge the $GIT_BRANCH to $GIT_BRANCH_DEV locally and push the changes and rerun the script"
+    exit 1
+  fi
 
 
-if ! git push --set-upstream origin "$GIT_DEV_BRANCH";
-then
-  echo "Failed to push GIT_DEV_BRANCH to origin"
-  exit 1
+  if ! git push --set-upstream origin "$GIT_DEV_BRANCH";
+  then
+    echo "Failed to push GIT_DEV_BRANCH to origin"
+    exit 1
+  fi
+else
+  echo "Changelog will not be created and commited"
+  echo "Pipeline is running on commit which is not HEAD of the $GIT_BRANCH branch"
 fi
 
 

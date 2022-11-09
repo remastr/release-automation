@@ -75,12 +75,14 @@ In following few sections, you will also work with your git system and you will 
 These credentials will be used to push commits and tags.
 
 For the project, just choose the project for which you are implementing release-automation.
-For the user, there are two strategies here 
+For the user, there are two strategies here:
 
 - create new user specifically for this release-automation script and any other automated things in future (highly recommended)
 - use already existing user
 
 Whenever there will be git user/project addressed in the following sections, it means whichever user/project you have chosen in this step.
+
+> NOTE: when you will be working with user, don't forget he needs push privileges to both production and development git branch
 
 > NOTE: you don't need to create user rightaway, it might be that your setup will not require user, just project. Whenever you will be asked to assign something to git user, then make a choice and create/reuse one.
 
@@ -92,7 +94,9 @@ By default, if you set up any VCS project inside any CI/CD tool, most of them us
 
 ### GitLab + GitLab CI
 
-In GitLab project to `Settings` -> `Access Tokens` and create new access token with `read_repository` and `write_repository` permissions and assign it role `Maintainer`. Copy the key ID, you will use it later.
+In GitLab project go to `Settings` -> `Access Tokens` and create new access token with `read_repository` and `write_repository` permissions and assign it role `Maintainer`. Copy the key ID, you will use it later.
+
+If for some reason you don't have the `Access tokens` available inside the settings, you can also create a token for git user and use this one. In this case, go to `User Settings` -> `Access Tokens` and create new access token with `read_repository` and `write_repository` permissions
 
 
 ### GitLab + Circle CI
@@ -146,6 +150,8 @@ release:
   image: cimg/python:3.8-node
   rules:
     - if: '$CI_COMMIT_BRANCH == $GIT_BRANCH'
+  variables:
+    - GIT_DEPTH: 0
   script:
     - git remote set-url origin https://${CI_REGISTRY_USER}:${GIT_TOKEN}@${CI_REPOSITORY_URL#*@}
     - VERSION=$(poetry version --short)
