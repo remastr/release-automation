@@ -96,7 +96,7 @@ By default, if you set up any VCS project inside any CI/CD tool, most of them us
 
 In GitLab project go to `Settings` -> `Access Tokens` and create new access token with `read_repository` and `write_repository` permissions and assign it role `Maintainer`. Copy the key ID, you will use it later.
 
-If for some reason you don't have the `Access tokens` available inside the settings, you can also create a token for git user and use this one. In this case, go to `User Settings` -> `Access Tokens` and create new access token with `read_repository` and `write_repository` permissions
+If for some reason you don't have the `Access tokens` available inside the settings, you can also create a token for git user and use this one. In this case, go to `User Settings` -> `Access Tokens` and create new access token with `read_repository` and `write_repository` permissions. Copy the key ID, you will use it later.
 
 
 ### GitLab + Circle CI
