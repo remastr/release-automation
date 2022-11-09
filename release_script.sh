@@ -11,17 +11,6 @@ for val in "${REQUIRED_VARIABLES[@]}"; do
   if [ -z ${!val+x} ]; then echo "Required variable '$val' is not set"; exit 1; fi
 done
 
-### FETCHING WHOLE REPOSITORY
-# Fetch is needed because most CIs are performing only shallow pull
-# This ensures the script will run correctly under any circumstances
-
-echo "Running 'git fetch' command"
-git fetch
-
-git --no-pager log --format="%h  %s (%an)" --no-merges HEAD~1..HEAD
-
-exit 1
-
 
 ### VARIABLES SETUP
 
@@ -35,8 +24,6 @@ MERGE_COMMIT_AUTHOR=$(git log -1 --format="%an")
 echo "Creating changelog content"
 CHANGELOG=$(git --no-pager log --format="%h  %s (%an)" --no-merges HEAD~1..HEAD)
 echo $CHANGELOG
-
-exit 1
 
 # Regex for searching the release version in commit message
 # Not Used currently
@@ -64,6 +51,11 @@ git push origin "v$VERSION";
 
 
 ### FLOW
+
+# Fetch is needed because most CIs are performing only shallow pull
+# This ensures the script will run correctly under any circumstances
+
+git fetch
 
 # Checking out prod branch
 if ! git checkout "$GIT_BRANCH";

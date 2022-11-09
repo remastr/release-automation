@@ -146,6 +146,8 @@ release:
   image: cimg/python:3.8-node
   rules:
     - if: '$CI_COMMIT_BRANCH == $GIT_BRANCH'
+  variables:
+    - GIT_DEPTH: 0
   script:
     - git remote set-url origin https://${CI_REGISTRY_USER}:${GIT_TOKEN}@${CI_REPOSITORY_URL#*@}
     - VERSION=$(poetry version --short)
