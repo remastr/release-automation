@@ -39,7 +39,7 @@ fi
 git checkout "$COMMIT_TO_RETURN"
 
 
-git --no-pager log --all --format="%h  %s (%an)" --no-merges HEAD~1..HEAD
+git --no-pager log --format="%h  %s (%an)" --no-merges HEAD~1..HEAD
 
 exit 1
 
