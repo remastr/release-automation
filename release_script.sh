@@ -18,8 +18,6 @@ done
 echo "Running 'git fetch' command"
 git fetch
 
-git checkout v2.7.0
-
 git --no-pager log --format="%h  %s (%an)" --no-merges HEAD~1..HEAD
 
 exit 1
