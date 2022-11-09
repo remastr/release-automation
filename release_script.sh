@@ -18,6 +18,27 @@ done
 echo "Running 'git fetch' command"
 git fetch
 
+COMMIT_TO_RETURN=$(git log --pretty=format:'%h' -n 1)
+
+# Checking out prod branch
+if ! git checkout "$GIT_BRANCH";
+then
+  echo "Could not checkout the branch $GIT_BRANCH provided in GIT_BRANCH env variable"
+  exit 1
+fi
+
+# This ensures the local prod branch is up to date with the remote one
+# Sometimes it happens that local branch is somehow behind some commits and then merging fails
+# Also pulling didn't help here on GitLab CI
+if ! git reset --hard "origin/$GIT_BRANCH";
+then
+  echo "Could not reset $GIT_BRANCH branch to the origins state"
+  exit 1
+fi
+
+git checkout "$COMMIT_TO_RETURN"
+
+
 git --no-pager log --all --format="%h  %s (%an)" --no-merges HEAD~1..HEAD
 
 exit 1
