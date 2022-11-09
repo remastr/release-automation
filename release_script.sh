@@ -21,9 +21,12 @@ MERGE_COMMIT_MESSAGE=$(git log -1 --format="%s")
 MERGE_COMMIT_AUTHOR=$(git log -1 --format="%an")
 
 # Changelog for all commits merged to this branch since last commit on this branch
-CHANGELOG=$(git log --format="%h  %s (%an)" --no-merges HEAD~1..HEAD)
+echo "Creating changelog content"
+CHANGELOG=$(git --no-pager log --format="%h  %s (%an)" --no-merges HEAD~1..HEAD)
+echo $CHANGELOG
 
 # Regex for searching the release version in commit message
+# Not Used currently
 RE="([0-9]+\.[0-9]+)"
 
 
@@ -40,7 +43,7 @@ git config --global user.name "$GIT_USERNAME"
 
 ### TAG CREATION
 
-# Tag needs to be created before the git setup to have the tag on HEAD where the pipeline is executed, not on HEAD of main branch
+# Tag needs to be created before the git fetch to have the tag on HEAD where the pipeline is executed, not on HEAD of main branch
 # Also the script will fail before anything else happens if this version was already published
 
 # Create tag for version and push it to remote
@@ -48,7 +51,7 @@ echo "Going to tag the git with version v$VERSION"
 git tag "v$VERSION"
 if ! git push origin "v$VERSION";
 then
-  echo "Version $VERSION already exists as git tag"
+  echo "Could not create git tag $VERSION"
   exit 1
 fi
 
@@ -80,12 +83,12 @@ fi
 echo "Creating changelog directory"
 mkdir changelog
 CHANGELOG_FILE="changelog/$VERSION"
-echo "Creating changelog content and writing into the file"
+echo "Writing changelog content into the file"
 echo "Release $VERSION merged to production on $(date) by $MERGE_COMMIT_AUTHOR" > "$CHANGELOG_FILE"
 printf "\nReleased changes:\n" >> "$CHANGELOG_FILE"
 echo "$CHANGELOG" >> "$CHANGELOG_FILE"
 
-# Commit the changelog changes
+# Commit and push the changelog changes
 echo "Committing changelog file to branch $GIT_BRANCH"
 git add .
 git commit -m "Changelog for version $VERSION
@@ -93,7 +96,7 @@ git commit -m "Changelog for version $VERSION
 [ci skip]"
 
 echo "Pushing the changes on branch $GIT_BRANCH"
-if ! git push;
+if ! git push --set-upstream origin "$GIT_BRANCH";
 then
   echo "Failed to push $GIT_BRANCH to origin"
   exit 1
@@ -117,13 +120,22 @@ fi
 if ! git merge "$GIT_BRANCH" --no-ff -m "Merge branch '$GIT_BRANCH' into '$GIT_DEV_BRANCH'";
 then
   echo "Failed to merge branch $GIT_BRANCH to $GIT_DEV_BRANCH"
+  echo "SUGGESTION: Merge the $GIT_BRANCH to $GIT_BRANCH_DEV locally and push the changes"
   exit 1
 fi
 
 
-if ! git push;
+if ! git push --set-upstream origin "$GIT_DEV_BRANCH";
 then
   echo "Failed to push GIT_DEV_BRANCH to origin"
   exit 1
 fi
 
+
+if [ "$RA_JIRA_PLUGIN" == "1" ]; 
+then
+  wget "https://raw.githubusercontent.com/remastr/release-automation/$RA_VERSION/plugins/jira/jira_plugin.py"
+  python3 jira_plugin.py "$VERSION" "$CHANGELOG"
+else 
+  echo "Jira Plugin is not enabled, set RA_JIRA_PLUGIN env variable to '1' to enable it"; 
+fi
