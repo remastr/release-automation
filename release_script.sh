@@ -19,6 +19,10 @@ echo "Running 'git fetch' command"
 git fetch
 git status
 
+git --no-pager log --format="%h  %s (%an)" --no-merges HEAD~1..HEAD
+
+git show HEAD~1
+
 
 ### VARIABLES SETUP
 
