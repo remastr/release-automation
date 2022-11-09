@@ -121,7 +121,6 @@ if ! git merge "$GIT_BRANCH" --no-ff -m "Merge branch '$GIT_BRANCH' into '$GIT_D
 then
   echo "Failed to merge branch $GIT_BRANCH to $GIT_DEV_BRANCH"
   echo "SUGGESTION: Merge the $GIT_BRANCH to $GIT_BRANCH_DEV locally and push the changes"
-  echo "SUGGESTION: Once you merge these two branches, you can consider release as finished, no rerun is needed"
   exit 1
 fi
 
