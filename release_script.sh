@@ -17,10 +17,10 @@ done
 
 echo "Running 'git fetch' command"
 git fetch
-git status
 
-git show HEAD
-git show HEAD~1
+git --no-pager log --all --format="%h  %s (%an)" --no-merges HEAD~1..HEAD
+
+exit 1
 
 
 ### VARIABLES SETUP
