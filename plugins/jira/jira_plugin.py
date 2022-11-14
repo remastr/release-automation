@@ -113,6 +113,7 @@ class JiraService:
         create_version_url = f"/rest/api/3/version"
         create_version_body = {
             "releaseDate": date.today().isoformat(),
+            "released": True,
             "name": version_number,
             "projectId": self.jira_config.project_id
         }
