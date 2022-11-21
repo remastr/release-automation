@@ -47,7 +47,7 @@ In response, find `id`.:
 
 ```
 curl --location --request GET 'https://<your_jira_url>/rest/api/3/project/<your_jira_project_key>' \
---header 'Authorization: Basic <authorization>' \
+--header 'Authorization: Basic <authorization>'
 ```
 
 ### `Done` transition ID
@@ -56,7 +56,7 @@ In response, go to `transitions` and find the one with `name` attribute correspo
 
 ```
 curl --location --request GET 'https://<your_jira_url>/rest/api/3/issue/<your_jira_ticket>/transitions' \
---header 'Authorization: Basic <authorization>' \
+--header 'Authorization: Basic <authorization>'
 ```
 
 

@@ -224,7 +224,12 @@ if __name__ == '__main__':
     logger.info("#################################################")
     logger.info("Running the Jira Service\n")
 
-    JiraService(jira_config).execute(ver, tn)
+    jira_service = JiraService(jira_config)
+    operation = sys.argv[1]
+    if operation == "release":
+        jira_service.execute(ver, tn)
+    elif operation == "verify":
+        # TODO run verification of release
 
     logger.info("Jira Service ran successfully")
     logger.info("#################################################\n\n")
