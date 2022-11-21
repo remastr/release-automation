@@ -15,6 +15,15 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 
+class JiraPluginException(Exception):
+    pass
+
+
+class JiraOperation(enum.Enum):
+    RELEASE = "release"
+    VERIFY = "verify"
+
+
 @dataclass(frozen=True)
 class JiraVersion:
     id: str
@@ -53,15 +62,6 @@ class JiraConfig:
         for param in required_parameters:
             if not getattr(self, param):
                 raise JiraPluginException(f"Missing required parameter [{name}]")
-
-
-class JiraPluginException(Exception):
-    pass
-
-
-class JiraOperation(enum.Enum):
-    RELEASE = "release"
-    VERIFY = "verify"
 
 
 class JiraService:
