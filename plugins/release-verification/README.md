@@ -1,3 +1,6 @@
+TODO make it work also without staging environment
+TODO add optional flag to not run JIRA plugin on verification, but run on release
+
 # Release-verification Plugin
 
 Release-verification is plugin of release-automation which allows you
@@ -8,13 +11,13 @@ If you use JIRA plugin at the same time, it marks tickets in Jira which are curr
 ## Overview of setting up the release-automation script
 
 1. include script execution in your CI/CD tool pipeline
-2. configure JIRA plugin
+2. configure JIRA plugin - only if you are using JIRA plugin
 
 
 ## 1. Including script execution in CI/CD tool pipeline
 
 
-### GitLab + GitLab CI
+### GitLab CI
 
 Add another `stage` called `release-verification` (before `post-deploy`) into your config:
 
@@ -32,11 +35,10 @@ release-verification:
   stage: release-verification
   image: cimg/python:3.8-node
   rules:
-#    - if: '$CI_COMMIT_BRANCH =~ "/^release\/.+$/" || $CI_COMMIT_BRANCH =~ "/^hotfix\/.+$/"'
-    - if: '$CI_COMMIT_BRANCH == feature/ADA-2093'
+    - if: '$CI_COMMIT_BRANCH =~ "/^release\/.+$/" || $CI_COMMIT_BRANCH =~ "/^hotfix\/.+$/"'
   script:
     - VERSION=$(poetry version --short)
-    - bash <(curl -s https://raw.githubusercontent.com/remastr/release-automation/feature/release-verification/plugins/release-verification/release_verification.sh) $VERSION
+    - bash <(curl -s https://raw.githubusercontent.com/remastr/release-automation/$RA_VERSION/plugins/release-verification/release_verification.sh) $VERSION
 ```
 
 ## 2. Configuring JIRA version plugin
