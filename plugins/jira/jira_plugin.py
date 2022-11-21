@@ -54,9 +54,9 @@ class JiraConfig:
         :return:
         """
         required_parameters = ["url", "project_id", "project_key", "user_email", "user_token"]
-        if jira_operation == JiraOperation.VERIFY:
+        if jira_operation == JiraOperation.RELEASE:
             required_parameters.extend(["rfr_status_name", "done_transition_id"])
-        elif jira_operation == JiraOperation.RELEASE:
+        elif jira_operation == JiraOperation.VERIFY:
             required_parameters.extend(["released_to_staging_transition_id"])
 
         for param in required_parameters:
