@@ -53,7 +53,6 @@ class JiraConfig:
         :param jira_operation:
         :return:
         """
-        print(jira_operation)
         required_parameters = ["url", "project_id", "project_key", "user_email", "user_token"]
         if jira_operation == JiraOperation.RELEASE:
             required_parameters.extend(["rfr_status_name", "done_transition_id"])
@@ -61,10 +60,8 @@ class JiraConfig:
             required_parameters.extend(["released_to_staging_transition_id"])
 
         for param in required_parameters:
-            print(param)
-            print(getattr(self, param))
             if not getattr(self, param):
-                raise JiraPluginException(f"Missing required parameter [{name}]")
+                raise JiraPluginException(f"Missing required parameter [{param}]")
 
 
 class JiraService:
