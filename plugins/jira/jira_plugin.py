@@ -1,3 +1,4 @@
+import enum
 import json
 import os
 import re
@@ -35,10 +36,32 @@ class JiraConfig:
     user_token: str
     rfr_status_name: str
     done_transition_id: str
+    released_to_staging_transition_id: str
+
+    def validate(self, jira_operation: JiraOperation) -> None:
+        """
+        Raises exception if some required parameter is missing for the specified operation
+        :param jira_operation:
+        :return:
+        """
+        required_parameters = ["url", "project_id", "project_key", "user_email", "user_token"]
+        if jira_operation == JiraOperation.VERIFY:
+            required_parameters.extend(["rfr_status_name", "done_transition_id"])
+        elif jira_operation == JiraOperation.RELEASE:
+            required_parameters.extend(["released_to_staging_transition_id"])
+
+        for param in required_parameters:
+            if not getattr(self, param):
+                raise JiraPluginException(f"Missing required parameter [{name}]")
 
 
 class JiraPluginException(Exception):
     pass
+
+
+class JiraOperation(enum.Enum):
+    RELEASE = "release"
+    VERIFY = "verify"
 
 
 class JiraService:
@@ -51,7 +74,17 @@ class JiraService:
             "Content-type": "application/json"
         }
 
-    def execute(self, version: str, ticket_numbers: Set[str]):
+    def verify(self, ticket_numbers: Set[str]):
+        self.jira_config.validate(JiraOperation.VERIFY)
+        for ticket_number in ticket_numbers:
+            jira_issue = self.get_jira_issue(ticket_number)
+            if not jira_issue:
+                logger.warning(f"Cannot process ticket [{ticket_number}] because it was not found in JIRA")
+                continue
+            self.transition_issue_to_staging(jira_issue)
+
+    def release(self, version: str, ticket_numbers: Set[str]):
+        self.jira_config.validate(JiraOperation.RELEASE)
         version = self.get_or_create_version(version)
         for ticket_number in ticket_numbers:
             jira_issue = self.get_jira_issue(ticket_number)
@@ -86,9 +119,10 @@ class JiraService:
         self._send_put_request(assign_version_url, assign_version_body)
 
     def transition_issue_to_done(self, issue: JiraIssue) -> bool:
-        if issue.status.lower() != self.jira_config.rfr_status_name.lower():
-            logger.warning(f"Cannot transition ticket [{issue.key}] with status [{issue.status}] to Done, it needs to be in 'Ready for Release' status")
-            return False
+        # If you are using release-verification plugin than it is not necessary to check for current status of issue
+        if not self.jira_config.released_to_staging_transition_id and issue.status.lower() != self.jira_config.rfr_status_name.lower():
+                logger.warning(f"Cannot transition ticket [{issue.key}] with status [{issue.status}] to Done, it needs to be in 'Ready for Release' status")
+                return False
 
         transition_issue_url = f"/rest/api/3/issue/{issue.key}/transitions"
         transition_issue_body = {
@@ -98,6 +132,18 @@ class JiraService:
         }
 
         self._send_post_request(transition_issue_url, transition_issue_body)
+        return True
+
+    def transition_issue_to_staging(self, issue: JiraIssue) -> bool:
+        transition_issue_url = f"/rest/api/3/issue/{issue.key}/transitions"
+        transition_issue_body = {
+            "transition": {
+                "id": self.jira_config.released_to_staging_transition_id
+            }
+        }
+
+        self._send_post_request(transition_issue_url, transition_issue_body)
+        return True
 
     def get_or_create_version(self, version_number: str) -> JiraVersion:
         get_version_url = f"/rest/api/3/project/{self.jira_config.project_key}/version?query={version_number}"
@@ -167,13 +213,6 @@ def flatten_list_of_lists(l: List[List[str]]) -> Set[str]:
     return {item for sublist in l for item in sublist}
 
 
-def get_env_variable_or_raise(variable_name: str) -> str:
-    value = os.environ.get(variable_name)
-    if not value:
-        raise JiraPluginException(f"Missing env variable [{variable_name}]")
-    return value
-
-
 if __name__ == '__main__':
     logger.info("Running Jira plugin of release-automation\n\n")
 
@@ -181,28 +220,33 @@ if __name__ == '__main__':
     logger.info("Starting extraction of environment variables\n")
 
     # Jira URL without www or https, e.g. abodeinauto.atlassian.net
-    jira_url = get_env_variable_or_raise("JIRA_URL")
+    jira_url = os.environ.get("JIRA_URL", None)
 
     # Email of the user which will be used to manipulate Jira data
-    jira_user_email = get_env_variable_or_raise("JIRA_USER_EMAIL")
+    jira_user_email = os.environ.get("JIRA_USER_EMAIL", None)
 
     # Jira personal user token (https://id.atlassian.com/manage-profile/security/api-tokens)
-    jira_user_token = get_env_variable_or_raise("JIRA_USER_TOKEN")
+    jira_user_token = os.environ.get("JIRA_USER_TOKEN", None)
 
     # Jira project key, usually 3 letters present in Jira issue key, like ADA-122
-    jira_project_key = get_env_variable_or_raise("JIRA_PROJECT_KEY")
+    jira_project_key = os.environ.get("JIRA_PROJECT_KEY", None)
 
     # Jira project ID, retrieved via API (/rest/api/3/project/<project_key>)
-    jira_project_id = get_env_variable_or_raise("JIRA_PROJECT_ID")
+    jira_project_id = os.environ.get("JIRA_PROJECT_ID", None)
 
     # Jira Ready for Release status name, the one prior to Done
-    jira_ready_for_release_status_name = get_env_variable_or_raise("JIRA_READY_FOR_RELEASE_STATUS_NAME")
+    jira_ready_for_release_status_name = os.environ.get("JIRA_READY_FOR_RELEASE_STATUS_NAME", None)
 
-    # Jira Done transition id, retrieved via API (/rest/api/3/issue/<any_project_issue_key>/transitions)
+    # Jira 'Done' transition id, retrieved via API (/rest/api/3/issue/<any_project_issue_key>/transitions)
     # Look for the transition with correct name and pass the ID in this variable
-    jira_done_transition_id = get_env_variable_or_raise("JIRA_DONE_TRANSITION_ID")
+    jira_done_transition_id = os.environ.get("JIRA_DONE_TRANSITION_ID", None)
 
-    jira_config = JiraConfig(jira_url, jira_project_id, jira_project_key, jira_user_email, jira_user_token, jira_ready_for_release_status_name, jira_done_transition_id)
+    # Jira 'Released on staging' transition id
+    # retrieved via API (/rest/api/3/issue/<any_project_issue_key>/transitions)
+    # Look for the transition with correct name and pass the ID in this variable
+    jira_released_on_staging_transition_id = os.environ.get("JIRA_RELEASED_ON_STAGING_TRANSITION_ID", None)
+
+    jira_config = JiraConfig(jira_url, jira_project_id, jira_project_key, jira_user_email, jira_user_token, jira_ready_for_release_status_name, jira_done_transition_id, jira_released_on_staging_transition_id)
 
     logger.info("Extraction of environment variables finished successfully")
     logger.info("#################################################\n\n")
@@ -212,8 +256,8 @@ if __name__ == '__main__':
 
     logger.info(f"Arguments passed to script: {sys.argv}")
 
-    ver = sys.argv[1]
-    tn = parse_changelog_into_ticket_numbers(sys.argv[2])
+    ver = sys.argv[2]
+    tn = parse_changelog_into_ticket_numbers(sys.argv[3])
 
     logger.info(f"Version is [{ver}]")
     logger.info(f"Parsed ticket numbers are: {list(tn)}")
@@ -225,11 +269,11 @@ if __name__ == '__main__':
     logger.info("Running the Jira Service\n")
 
     jira_service = JiraService(jira_config)
-    operation = sys.argv[1]
-    if operation == "release":
-        jira_service.execute(ver, tn)
-    elif operation == "verify":
-        # TODO run verification of release
+    operation = JiraOperation(sys.argv[1])
+    if operation == JiraOperation.RELEASE:
+        jira_service.release(ver, tn)
+    elif operation == JiraOperation.VERIFY:
+        jira_service.verify(tn)
 
     logger.info("Jira Service ran successfully")
     logger.info("#################################################\n\n")

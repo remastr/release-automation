@@ -16,5 +16,10 @@ if git ls-remote --tags origin | grep "v$VERSION"; then
     exit 1
 fi
 
-# wget "https://raw.githubusercontent.com/remastr/release-automation/$RA_VERSION/plugins/release-verification/release_verification_plugin.py"
-# python3 release_verification_plugin.py "$VERSION" "$CHANGELOG"
+if [ "$RA_JIRA_PLUGIN" == "1" ]; 
+then
+  wget "https://raw.githubusercontent.com/remastr/release-automation/$RA_VERSION/plugins/jira/jira_plugin.py"
+  python3 jira_plugin.py "verify" "$VERSION" "$CHANGELOG"
+else 
+  echo "Jira Plugin is not enabled, set RA_JIRA_PLUGIN env variable to '1' to enable it"; 
+fi
