@@ -60,6 +60,8 @@ class JiraConfig:
             required_parameters.extend(["released_to_staging_transition_id"])
 
         for param in required_parameters:
+            print(param)
+            print(getattr(self, param))
             if not getattr(self, param):
                 raise JiraPluginException(f"Missing required parameter [{name}]")
 
