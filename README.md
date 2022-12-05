@@ -9,6 +9,7 @@ release_script.sh is script used to perform following tasks automatically after 
 It has also support for plugins, currently available plugins are:
 
 - JIRA plugin
+- Release-verification plugin
 
 > NOTE: You can find each plugin in `plugins` directory and documentation to this plugin in `README.md` file inside each plugin
 
@@ -75,7 +76,8 @@ In following few sections, you will also work with your git system and you will 
 These credentials will be used to push commits and tags.
 
 For the project, just choose the project for which you are implementing release-automation.
-For the user, there are two strategies here:
+
+For the user, there are two strategies:
 
 - create new user specifically for this release-automation script and any other automated things in future (highly recommended)
 - use already existing user
@@ -111,20 +113,19 @@ For this configuration, this step is unnecessary. The key will be generated for 
 
 ## 6. Adding SSH key into CI/CD tool projects settings
 
+### GitLab + GitLab CI
+
+Add environment variable `GIT_TOKEN` inside your CI/CD project settings, where you will pass the copied Key ID from previous step.
+
 
 ### GitLab + Circle CI
 
 Open Circle CI project, go to `Project settings` -> `SSH Keys` -> `Additional SSH Keys` and add previously created private key there. Leave hostname empty.
 
 
-### GitLab + GitLab CI
-
-Add environment variable `GIT_TOKEN` inside your CI/CD project settings, where you will pass the copied Key ID from previous step.
-
-
 ### BitBucket + Circle CI
 
-https://support.circleci.com/hc/en-us/articles/360003174053-How-Do-I-Add-a-Bitbucket-User-Key-
+https://support.circleci.com/hc/en-us/articles/360003174053-How-do-I-add-a-BitBucket-user-key-
 
 After adding this key, you need to delete `Deploy Key` that was previously added automatically in Circle CI. Also do not forget to follow last step of the CircleCI guide provided above to put the key into the BitBucket.
 
@@ -145,13 +146,14 @@ stages:
 Add following step into your `.gitlab-ci.yml` file:
 
 ```
+variables:
+  GIT_DEPTH: 0
+
 release:
   stage: post-deploy
   image: cimg/python:3.8-node
   rules:
     - if: '$CI_COMMIT_BRANCH == $GIT_BRANCH'
-  variables:
-    - GIT_DEPTH: 0
   script:
     - git remote set-url origin https://${CI_REGISTRY_USER}:${GIT_TOKEN}@${CI_REPOSITORY_URL#*@}
     - VERSION=$(poetry version --short)
