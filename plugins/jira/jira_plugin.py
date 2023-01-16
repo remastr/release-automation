@@ -46,6 +46,7 @@ class JiraConfig:
     rfr_status_name: str
     done_transition_id: str
     released_to_staging_transition_id: str
+    flag_custom_field_id: str
 
     def validate(self, jira_operation: JiraOperation) -> None:
         """
@@ -57,7 +58,7 @@ class JiraConfig:
         if jira_operation == JiraOperation.RELEASE:
             required_parameters.extend(["rfr_status_name", "done_transition_id"])
         elif jira_operation == JiraOperation.VERIFY:
-            required_parameters.extend(["released_to_staging_transition_id"])
+            required_parameters.extend(["released_to_staging_transition_id", "flag_custom_field_id"])
 
         for param in required_parameters:
             if not getattr(self, param):
@@ -82,6 +83,12 @@ class JiraService:
                 logger.warning(f"Cannot process ticket [{ticket_number}] because it was not found in JIRA")
                 continue
             self.transition_issue_to_staging(jira_issue)
+            if not jira_issue.status.lower() == self.jira_config.rfr_status_name.lower():
+                logger.info(
+                    f"Jira Issue [{jira_issue.key}] was not in Ready for Release status before moving "
+                    f"it into Released for Staging, therefore it will be flagged"
+                )
+                self.flag_issue(jira_issue)
 
     def release(self, version: str, ticket_numbers: Set[str]):
         self.jira_config.validate(JiraOperation.RELEASE)
@@ -132,6 +139,23 @@ class JiraService:
         }
 
         self._send_post_request(transition_issue_url, transition_issue_body)
+        return True
+
+    def flag_issue(self, issue: JiraIssue) -> bool:
+        logger.info(f"Going to flag ticket [{issue.key}]")
+        flag_issue_body = {
+            "update": {
+                self.jira_config.flag_custom_field_id: [{
+                    "set": [
+                        {
+                            "value": "Impediment"
+                        }
+                    ]
+                }]
+            }
+        }
+        flag_issue_url = f"/rest/api/3/issue/{issue.key}"
+        self._send_put_request(flag_issue_url, flag_issue_body)
         return True
 
     def transition_issue_to_staging(self, issue: JiraIssue) -> bool:
@@ -246,7 +270,10 @@ if __name__ == '__main__':
     # Look for the transition with correct name and pass the ID in this variable
     jira_released_on_staging_transition_id = os.environ.get("JIRA_RELEASED_ON_STAGING_TRANSITION_ID", None)
 
-    jira_config = JiraConfig(jira_url, jira_project_id, jira_project_key, jira_user_email, jira_user_token, jira_ready_for_release_status_name, jira_done_transition_id, jira_released_on_staging_transition_id)
+    # Flag in Jira is custom field, this is its id
+    jira_flag_custom_field_id = os.environ.get("JIRA_FLAG_CUSTOM_FIELD_ID", None)
+
+    jira_config = JiraConfig(jira_url, jira_project_id, jira_project_key, jira_user_email, jira_user_token, jira_ready_for_release_status_name, jira_done_transition_id, jira_released_on_staging_transition_id, jira_flag_custom_field_id)
 
     logger.info("Extraction of environment variables finished successfully")
     logger.info("#################################################\n\n")
