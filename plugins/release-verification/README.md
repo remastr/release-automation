@@ -69,4 +69,5 @@ Then set these two as variables in your CI/CD tool:
 ```
 JIRA_RELEASED_ON_STAGING_TRANSITION_ID - Transition ID aquired from API
 JIRA_FLAG_CUSTOM_FIELD_ID - custom field ID aquired from API
+JIRA_RELEASED_ON_STAGING_STATUS_NAME - name of status prior to `Done` status
 ```

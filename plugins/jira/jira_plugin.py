@@ -44,6 +44,7 @@ class JiraConfig:
     user_email: str
     user_token: str
     rfr_status_name: str
+    ros_status_name: str
     done_transition_id: str
     released_to_staging_transition_id: str
     flag_custom_field_id: str
@@ -58,7 +59,7 @@ class JiraConfig:
         if jira_operation == JiraOperation.RELEASE:
             required_parameters.extend(["rfr_status_name", "done_transition_id"])
         elif jira_operation == JiraOperation.VERIFY:
-            required_parameters.extend(["released_to_staging_transition_id", "flag_custom_field_id"])
+            required_parameters.extend(["released_to_staging_transition_id", "flag_custom_field_id", "ros_status_name"])
 
         for param in required_parameters:
             if not getattr(self, param):
@@ -81,6 +82,9 @@ class JiraService:
             jira_issue = self.get_jira_issue(ticket_number)
             if not jira_issue:
                 logger.warning(f"Cannot process ticket [{ticket_number}] because it was not found in JIRA")
+                continue
+            if jira_issue.status.lower() == self.jira_config.ros_status_name.lower():
+                logger.info(f"Ticket [{ticket_number}] is already in released on staging status, it will not be moved")
                 continue
             self.transition_issue_to_staging(jira_issue)
             if not jira_issue.status.lower() == self.jira_config.rfr_status_name.lower():
@@ -258,8 +262,11 @@ if __name__ == '__main__':
     # Jira project ID, retrieved via API (/rest/api/3/project/<project_key>)
     jira_project_id = os.environ.get("JIRA_PROJECT_ID", None)
 
-    # Jira Ready for Release status name, the one prior to Done
+    # Jira Ready for Release status name, the one prior to Released on Staging
     jira_ready_for_release_status_name = os.environ.get("JIRA_READY_FOR_RELEASE_STATUS_NAME", None)
+
+    # Jira Released on Staging status name, the one prior to Done
+    jira_released_on_staging_status_name = os.environ.get("JIRA_RELEASED_ON_STAGING_STATUS_NAME", None)
 
     # Jira 'Done' transition id, retrieved via API (/rest/api/3/issue/<any_project_issue_key>/transitions)
     # Look for the transition with correct name and pass the ID in this variable
@@ -273,7 +280,7 @@ if __name__ == '__main__':
     # Flag in Jira is custom field, this is its id
     jira_flag_custom_field_id = os.environ.get("JIRA_FLAG_CUSTOM_FIELD_ID", None)
 
-    jira_config = JiraConfig(jira_url, jira_project_id, jira_project_key, jira_user_email, jira_user_token, jira_ready_for_release_status_name, jira_done_transition_id, jira_released_on_staging_transition_id, jira_flag_custom_field_id)
+    jira_config = JiraConfig(jira_url, jira_project_id, jira_project_key, jira_user_email, jira_user_token, jira_ready_for_release_status_name, jira_released_on_staging_status_name, jira_done_transition_id, jira_released_on_staging_transition_id, jira_flag_custom_field_id)
 
     logger.info("Extraction of environment variables finished successfully")
     logger.info("#################################################\n\n")
