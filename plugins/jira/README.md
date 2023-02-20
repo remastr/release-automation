@@ -47,7 +47,7 @@ In response, find `id`.:
 
 ```
 curl --location --request GET 'https://<your_jira_url>/rest/api/3/project/<your_jira_project_key>' \
---header 'Authorization: Basic <authorization>' \
+--header 'Authorization: Basic <authorization>'
 ```
 
 ### `Done` transition ID
@@ -56,7 +56,7 @@ In response, go to `transitions` and find the one with `name` attribute correspo
 
 ```
 curl --location --request GET 'https://<your_jira_url>/rest/api/3/issue/<your_jira_ticket>/transitions' \
---header 'Authorization: Basic <authorization>' \
+--header 'Authorization: Basic <authorization>'
 ```
 
 
@@ -70,4 +70,4 @@ Following variables are required for Jira plugin to run successfully and need to
 - `JIRA_PROJECT_KEY` - string contained in ticket numbers, like `TES-111` (in this case the project key is `TES`)
 - `JIRA_PROJECT_ID` - ID of project aquired from API, see previous section
 - `JIRA_DONE_TRANSITION_ID` - ID of `Done` status transition aquired from API, see previous section
-- `JIRA_READY_FOR_RELEASE_STATUS_NAME` - name of status prior to `Done` status, like 'Ready for Relase', casing does not matter (only tickets in this status will be moved to `Done`, other will stay in their columns - to not move tickets e.g. from testing column to `Done` status accidentaly)
+- `JIRA_READY_FOR_RELEASE_STATUS_NAME` - name of status prior to `Done` status (or `Released on Staging` if you are using `release-verification` plugin as well), like 'Ready for Release', casing does not matter (only tickets in this status will be moved to `Done`, other will stay in their columns - to not move tickets e.g. from testing column to `Done` status accidentally)
