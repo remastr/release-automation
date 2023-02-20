@@ -1,5 +1,6 @@
 TODO make it work also without staging environment
 TODO add optional flag to not run JIRA plugin on verification, but run on release
+TODO add circle CI documentation
 
 # Release-verification Plugin
 

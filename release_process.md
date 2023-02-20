@@ -98,7 +98,7 @@ As mentioned in previous section, if there is something in development branch yo
 
 ```
 git checkout <production-branch>
-git checkout -b hotifx/<version>
+git checkout -b hotfix/<version>
 ```
 
 In case of hotfix, you should always check out from the production branch.
@@ -109,16 +109,16 @@ In case of hotfix, you should always check out from the production branch.
 For application versioning, you should use default option, which is `npm` or `poetry`. You should follow the [semantic versioning](https://semver.org/).
 
 ```
-poetry version major/minor/patch
+poetry version <major/minor/patch>
 or
-npm version major/minor/patch
+npm version <major/minor/patch>
 ```
 
 After you have updated the version of application, you need to commit this change into remote repository, into release/hotfix branch:
 
 ```
 git commit -am "chore: Version bump"
-git push
+git push --set-upstream origin <release-or-hotfix-branch-name>
 ```
 
 

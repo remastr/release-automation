@@ -183,6 +183,8 @@ And then add it to your workflows section:
 
 ```
 - release:
+    requires:
+      - deploy
     filters:
       branches:
         only:
