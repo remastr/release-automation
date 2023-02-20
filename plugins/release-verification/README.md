@@ -1,6 +1,5 @@
 TODO make it work also without staging environment
 TODO add optional flag to not run JIRA plugin on verification, but run on release
-TODO add circle CI documentation
 
 # Release-verification Plugin
 
@@ -16,6 +15,9 @@ If you use JIRA plugin at the same time, it moves tickets in Jira which are curr
 
 
 ## 1. Including script execution in CI/CD tool pipeline
+
+
+> NOTE: Examples of <command-to-get-projects-version> can be found in main `README.md` file 
 
 
 ### GitLab CI
@@ -38,8 +40,38 @@ release-verification:
   rules:
     - if: '$CI_COMMIT_BRANCH =~ "/^release\/.+$/" || $CI_COMMIT_BRANCH =~ "/^hotfix\/.+$/"'
   script:
-    - VERSION=$(poetry version --short)
+    - VERSION=$(<command-to-get-projects-version>)
     - bash <(curl -s https://raw.githubusercontent.com/remastr/release-automation/$RA_VERSION/plugins/release-verification/release_verification.sh) $VERSION
+```
+
+### Circle CI
+
+Add another `job` called `release-verification` into your config:
+
+```
+release-verification:
+  docker:
+    - image: cimg/python:3.9-node
+  steps:
+    - checkout
+    - run:
+        name: Release verification
+        command: |
+          export VERSION=$(<command-to-get-projects-version>)
+          bash <(curl -s https://raw.githubusercontent.com/remastr/release-automation/$RA_VERSION/plugins/release-verification/release_verification.sh) $VERSION
+```
+
+Add this newly added `job` to your workflow section:
+
+```
+- release-verification:
+    requires:
+      - deploy
+    filters:
+      branches:
+        only:
+          - /^release\/.*/
+          - /^hotfix\/.*/
 ```
 
 ## 2. Configuring JIRA version plugin

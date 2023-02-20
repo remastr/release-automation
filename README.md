@@ -30,7 +30,8 @@ It has also support for plugins, currently available plugins are:
 4. choose the user which will be making changes in repository
 5. generate the SSH key to push to repository from CI
 6. add SSH key into CI/CD tool projects settings
-7. include script execution in your CI/CD tool pipeline
+7. figuring out command to get current project version
+8. include script execution in your CI/CD tool pipeline
 
 
 ## 1. Specifying version of release-automation
@@ -140,7 +141,21 @@ https://support.circleci.com/hc/en-us/articles/360003174053-How-do-I-add-a-BitBu
 After adding this key, you need to delete `Deploy Key` that was previously added automatically in Circle CI. Also do not forget to follow last step of the CircleCI guide provided above to put the key into the BitBucket.
 
 
-## 7. Including script execution in CI/CD tool pipeline
+## 7. Figuring out command to get current project version
+
+Since the project version is specified inside project configuration file, 
+it needs to be retrieved. Commands for version retrieval:
+
+Poetry:
+`poetry version --short`
+
+NPM:
+`npm pkg get version | sed 's/"//g'`
+
+This command will be used in next step.
+
+
+## 8. Including script execution in CI/CD tool pipeline
 
 
 ### GitLab + GitLab CI
@@ -166,7 +181,7 @@ release:
     - if: '$CI_COMMIT_BRANCH == $GIT_BRANCH'
   script:
     - git remote set-url origin https://${CI_REGISTRY_USER}:${GIT_TOKEN}@${CI_REPOSITORY_URL#*@}
-    - VERSION=$(poetry version --short)
+    - VERSION=$(<comamnd-to-get-projects-version>)
     - bash <(curl -s https://raw.githubusercontent.com/remastr/release-automation/$RA_VERSION/release_script.sh) $VERSION
 ```
 
@@ -185,7 +200,7 @@ release:
       - run:
           name: release
           command: |
-            VERSION=$(poetry version --short)
+            VERSION=$(<comamnd-to-get-projects-version>)
             bash <(curl -s https://raw.githubusercontent.com/remastr/release-automation/$RA_VERSION/release_script.sh) $VERSION
 ```
 
