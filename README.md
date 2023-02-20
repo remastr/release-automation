@@ -19,7 +19,7 @@ It has also support for plugins, currently available plugins are:
 - [x] GitLab + GitLab CI
 - [x] GitLab + Circle CI
 - [x] BitBucket + Circle CI
-- [ ] [Planned] GitHub + Circle CI
+- [x] GitHub + Circle CI
 
 
 ## Overview of setting up the release-automation script
@@ -106,6 +106,11 @@ If for some reason you don't have the `Access tokens` available inside the setti
 Generate new SSH key using guide in Help section. Open the project on GitLab and copy the content of public key into `Settings` -> `Repository` -> `Deploy Keys`. Make sure the option `Grant write permissions to this key` is checked and save the key
 
 
+### GitHub + Circle CI
+
+Generate new SSH key using guide in Help section. Open the project on GitHub and copy the content of public key into projects `Settings` -> `Deploy Keys` -> `Add deploy key` -> `Key`. Check the checkbox `Allow write access` and give the key whatever title, e.g. `CI push key`. Save the key.
+
+
 ### BitBucket + CircleCI
 
 For this configuration, this step is unnecessary. The key will be generated for you in next step.
@@ -121,6 +126,11 @@ Add environment variable `GIT_TOKEN` inside your CI/CD project settings, where y
 ### GitLab + Circle CI
 
 Open Circle CI project, go to `Project settings` -> `SSH Keys` -> `Additional SSH Keys` and add previously created private key there. Leave hostname empty.
+
+
+### GitHub + Circle CI
+
+Go to `Project settings` -> `SSH Keys` and under `Additional SSH keys section` add key with hostname `github.com` (important - documentation says it can stay blank but it is not working with blank `Hostname` field). To `private key` field you can paste the content of previously generated private ssh key.
 
 
 ### BitBucket + Circle CI
@@ -161,7 +171,7 @@ release:
 ```
 
 
-### GitLab/BitBucket + Circle CI
+### GitLab/BitBucket/GitHub + Circle CI
 
 Add new job into your pipeline, after the `deploy` job:
 
@@ -178,6 +188,20 @@ release:
             VERSION=$(poetry version --short)
             bash <(curl -s https://raw.githubusercontent.com/remastr/release-automation/$RA_VERSION/release_script.sh) $VERSION
 ```
+
+If you are using GitHub, you also need to add another step before checkout, which will add the previously generated ssh key fingerprint. You will find it in Circle CI, in `Project settings` -> `SSH Keys` and under `Additional SSH Keys` copy the Fingerprint of your added key. Then add this step before checkout step in this job:
+
+```
+release:
+  ...
+  steps:
+    - add_ssh_keys:
+        fingerprints:
+          - "ssh-key-fingerprint"
+    - checkout
+    ... 
+```
+
 
 And then add it to your workflows section:
 
